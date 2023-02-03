@@ -65,7 +65,7 @@ tbl_wide <- left_join(tbl_wide, tbl_dic, by = c("Ticker"))
 
 
 # Exclui ações dos setores "Financas e Seguros", "Fundos"
-tbl_wide <- tbl_wide %>% filter(!(Cod %in% c(4010, 4020, 4030)))
+# tbl_wide <- tbl_wide %>% filter(!(Cod %in% c(4010, 4020, 4030)))
 
 # 1. São excluídas as ações que não apresentaram cotação de fechamento no mês.
 tbl_wide <- tbl_wide %>% filter(!(is.na(PX_LAST)))
@@ -89,7 +89,7 @@ T10_Bond <- read_excel("./T10_Bond.xlsx",
                        range = cell_limits(ul=c(7, 1), lr = c(NA, 3)),
                        col_names = c("Date", "T10", "CDI"),
                        # col_types = c("date", "numeric", "numeric")
-                       )
+)
 
 T10_Bond$Date <- as.Date(T10_Bond$Date)
 
@@ -107,8 +107,56 @@ tbl_wide %>%
   labs()
 
 
+tbl_wide %>% 
+  filter(!(Cod %in% c(5020,
+    # 3020, 
+    6010,
+    3010, 
+    # 2520,
+    4510,
+    2010, 2530,3030,2030,3520,
+    2550))) %>% 
+  mutate(fCod = factor(x = Cod, levels = Cod, labels = Desc)) %>% 
+  # pull(ddd)
+  group_by(Date, fCod) %>% 
+  summarise(K = mean(k, trim = 0.1),
+            Eg = mean(g, trim = 0.1),
+            DIV_Yield = mean(DIV_1/PX_LAST, trim = 0.1)) %>% 
+  ggplot() +
+  # geom_line(aes(x = Date, y = K, colour = Desc)) + 
+  geom_line(aes(x = Date, y = K,
+                colour = fCod)) + 
+  # geom_text(aes(x = as.Date("2023-01-26"), y = DIV_Yield, label = fCod)) + 
+  labs()
 
-
-
+tbl_wide %>% 
+  filter(Ticker %in% c("BBDC4 BS Equity",
+                       "BBAS3 BS Equity",
+                       "VALE3 BS Equity",
+                       # "BRAP4 BS Equity",
+                       # "SUZB3 BS Equity",
+                       "TAEE11 BS Equity",
+                       "ENBR3 BS Equity",
+                       "CPLE6 BS Equity",
+                       "CMIG4 BS Equity"
+                       )) %>% 
+  mutate(fCod = factor(x = Ticker)) %>% 
+  # pull(ddd)
+  group_by(Date, fCod) %>% 
+  summarise(K = mean(k, trim = 0.1),
+            Eg = mean(g, trim = 0.1),
+            DIV_Yield = mean(DIV_1/PX_LAST, trim = 0.1)) %>% 
+  ggplot() +
+  # geom_line(aes(x = Date, y = K, colour = Desc)) + 
+  # geom_line(aes(x = Date, y = K,
+  #               colour = fCod)) + 
+  geom_line(aes(x = Date,
+                # y = K,
+                y = DIV_Yield,
+                colour = fCod)) + 
+  # geom_text(aes(x = as.Date("2023-01-26"), y = DIV_Yield, label = fCod)) + 
+  facet_wrap(~fCod) +
+  labs(title = "Dividend Yeild", y = "DIV_1/P0", X = NULL) + 
+  theme(legend.position = "none")
 
 
